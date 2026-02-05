@@ -2,41 +2,21 @@
  import { flashcardsData, type Flashcard as FlashcardType } from "../data/flashcardsData";
  import Flashcard from "./Flashcard";
  
- // Clave para almacenar IDs vistos en sessionStorage
- const STORAGE_KEY = "viewedFlashcards";
- 
  /**
   * Componente principal de la aplicación de Memofichas
   * 
   * Responsabilidades:
-  * - Gestionar el estado de tarjetas vistas (sessionStorage)
+ * - Gestionar el estado de tarjetas vistas (en memoria)
   * - Seleccionar tarjetas aleatorias sin repetir
   * - Coordinar la navegación entre tarjetas
   */
  const FlashcardApp = () => {
-   // IDs de tarjetas ya vistas en esta sesión
+  // IDs de tarjetas ya vistas (se reinicia al recargar)
    const [viewedIds, setViewedIds] = useState<string[]>([]);
    // Tarjeta actualmente mostrada
    const [currentCard, setCurrentCard] = useState<FlashcardType | null>(null);
    // Key para forzar re-render del componente Flashcard
    const [cardKey, setCardKey] = useState(0);
- 
-   /**
-    * Efecto inicial: recuperar tarjetas vistas desde sessionStorage
-    * Se ejecuta solo al montar el componente
-    */
-   useEffect(() => {
-     const stored = sessionStorage.getItem(STORAGE_KEY);
-     if (stored) {
-       try {
-         const parsed = JSON.parse(stored) as string[];
-         setViewedIds(parsed);
-       } catch {
-         // Si hay error al parsear, reiniciamos
-         sessionStorage.removeItem(STORAGE_KEY);
-       }
-     }
-   }, []);
  
    /**
     * Calcula las tarjetas disponibles (no vistas)
@@ -65,25 +45,22 @@
  
    /**
     * Efecto para seleccionar la primera tarjeta
-    * Se ejecuta después de cargar viewedIds desde storage
+   * Se ejecuta al montar el componente
     */
    useEffect(() => {
      if (currentCard === null && availableCards.length > 0) {
        selectRandomCard();
      }
-   }, [viewedIds]); // Solo depende de viewedIds para la carga inicial
+  }, []); // Solo al montar
  
    /**
     * Marca una tarjeta como vista
-    * - Actualiza el estado local
-    * - Persiste en sessionStorage
+   * - Actualiza el estado local (sin persistencia)
     */
    const handleCardFlip = (id: string) => {
      if (!viewedIds.includes(id)) {
        const newViewedIds = [...viewedIds, id];
        setViewedIds(newViewedIds);
-       // Persistir en sessionStorage
-       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newViewedIds));
      }
    };
  
@@ -95,10 +72,9 @@
    };
  
    /**
-    * Reinicia la sesión (borra tarjetas vistas)
+   * Reinicia la sesión
     */
    const handleReset = () => {
-     sessionStorage.removeItem(STORAGE_KEY);
      setViewedIds([]);
      setCurrentCard(null);
      // El efecto de selección se encargará de mostrar una nueva tarjeta
@@ -110,9 +86,9 @@
    const progressPercent = (viewedCount / totalCards) * 100;
  
    return (
-     <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
        {/* Header */}
-       <header className="py-6 px-4 border-b border-border">
+      <header className="py-4 px-4 border-b border-border flex-shrink-0">
          <div className="max-w-2xl mx-auto flex items-center justify-between">
            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
              <svg
@@ -137,7 +113,7 @@
        </header>
  
        {/* Barra de progreso */}
-       <div className="w-full bg-muted h-1">
+      <div className="w-full bg-muted h-1 flex-shrink-0">
          <div
            className="bg-primary h-1 transition-all duration-500 ease-out"
            style={{ width: `${progressPercent}%` }}
@@ -145,14 +121,14 @@
        </div>
  
        {/* Contenido principal */}
-       <main className="flex-1 flex flex-col items-center justify-center p-6">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden">
          {currentCard ? (
            // Mostrar tarjeta actual
-           <div className="w-full max-w-md animate-scale-in" key={cardKey}>
+          <div className="w-full max-w-md animate-scale-in flex flex-col items-center" key={cardKey}>
              <Flashcard card={currentCard} onFlip={handleCardFlip} />
  
              {/* Botón siguiente */}
-             <div className="mt-8 flex justify-center">
+            <div className="mt-6 flex justify-center">
                 {availableCards.length > 0 ? (
                  <button
                    onClick={handleNext}
@@ -220,7 +196,7 @@
        </main>
  
        {/* Footer */}
-       <footer className="py-4 px-4 border-t border-border">
+      <footer className="py-3 px-4 border-t border-border flex-shrink-0">
          <p className="text-center text-sm text-muted-foreground">
            Haz clic en la tarjeta para ver la respuesta
          </p>
