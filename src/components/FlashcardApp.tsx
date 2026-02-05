@@ -153,9 +153,7 @@
  
              {/* Botón siguiente */}
              <div className="mt-8 flex justify-center">
-               {availableCards.length > 1 ||
-               (availableCards.length === 1 &&
-                 !viewedIds.includes(currentCard.id)) ? (
+                {availableCards.length > 0 ? (
                  <button
                    onClick={handleNext}
                    className="px-8 py-3 bg-secondary text-secondary-foreground rounded-xl font-medium hover:bg-secondary/80 transition-colors flex items-center gap-2 shadow-sm"
@@ -176,8 +174,8 @@
                    </svg>
                  </button>
                ) : (
-                 // Última tarjeta - mostrar mensaje después de voltear
-                 viewedIds.includes(currentCard.id) && (
+                  // Última tarjeta - mostrar mensaje
+                  viewedCount === totalCards && (
                    <p className="text-muted-foreground text-center animate-fade-in">
                      ¡Esta es la última tarjeta!
                    </p>
